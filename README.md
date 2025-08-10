@@ -58,7 +58,4 @@ Agradeço a oportunidade de contribuir e demonstrar minhas habilidades por meio 
 
 ---
 
-## Contato
----
-
 Obrigado pela atenção e pela oportunidade!
