@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Votação de Filmes e Séries</title>
+<style>
+  body {
+    background: #423d72;
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 20px;
+    color: #222;
+  }
+  h1 {
+    color: #580303;
+    margin-bottom: 20px;
+  }
+  .container {
+    max-width: 1000px;
+    margin: auto;
+    display: flex;
+    gap: 20px;
+  }
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+    gap: 18px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    padding: 14px;
+  }
+  .thumb {
+    height: 150px;
+    border-radius: 10px;
+    background: linear-gradient(90deg,#ffffff,#ffffff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .thumb img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+  .title {
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+  .genre {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+  }
+  .desc {
+    font-size: 13px;
+    color: #444;
+    min-height: 40px;
+  }
+  .votes {
+    margin-top: auto;
+    display: flex;
+    gap: 12px;
+  }
+  button {
+    cursor: pointer;
+    border-radius: 10px;
+    border: none;
+    padding: 8px 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.2s ease;
+  }
+  .btn-like {
+    background: linear-gradient(90deg,#3b010d,#50010d);
+    color: white;
+  }
+  .btn-like:hover {
+    background: linear-gradient(90deg,#740213,#4e0513);
+  }
+  .btn-dislike {
+    background: #f1f1f1;
+    color: #444;
+  }
+  .btn-dislike:hover {
+    background: #ddd;
+  }
+  .counter {
+    font-weight: 700;
+  }
+  aside {
+    width: 360px;
+    background: rgba(255,255,255,0.8);
+    padding: 16px;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+  }
+  .totals {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .total-box {
+    background: rgba(255,255,255,0.6);
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    flex: 1;
+    margin: 0 6px;
+  }
+  .total-box h3 {
+    color: #1c014e;
+    margin-bottom: 4px;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  input, textarea {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  textarea {
+    resize: vertical;
+  }
+  button.submit {
+    background: #530110;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    transition: background-color 0.3s ease;
+  }
+  button.submit:hover {
+    background: #550112;
+  }
+  @media (max-width: 900px) {
+    .container {
+      flex-direction: column;
+    }
+    aside {
+      width: 100%;
+      margin-top: 20px;
+    }
+  }
+</style>
+</head>
+<body>
+  <h1>Votação de Filmes e Séries</h1>
+  <div class="container">
+    <main id="lista-filmes">
+      <!-- Cartões dos filmes/séries vão aqui -->
+    </main>
+
+    <aside>
+      <div class="totals">
+        <div class="total-box">
+          <h3 id="total-gostei">0</h3>
+          <div>Gostei (geral)</div>
+        </div>
+        <div class="total-box">
+          <h3 id="total-naoGostei">0</h3>
+          <div>Não Gostei (geral)</div>
+        </div>
+      </div>
+      <h3>Cadastrar novo filme/série</h3>
+      <form id="form-cadastro">
+        <input type="text" id="titulo" placeholder="Título *" required />
+        <input type="text" id="genero" placeholder="Gênero *" required />
+        <input type="url" id="imagem" placeholder="URL da imagem *" required />
+        <textarea id="descricao" rows="3" placeholder="Descrição (opcional)"></textarea>
+        <button class="submit" type="submit">Cadastrar</button>
+      </form>
+    </aside>
+  </div>
+
+<script>
+  const API_URL = 'http://127.0.0.1:5000/api';
+
+  async function carregarFilmes() {
+    const resp = await fetch(`${API_URL}/filmes`);
+    const filmes = await resp.json();
+
+    const container = document.getElementById('lista-filmes');
+    container.innerHTML = '';
+
+    filmes.forEach(filme => {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      card.innerHTML = `
+        <div class="thumb">
+          <img src="${filme.imagem}" alt="${filme.titulo}" />
+        </div>
+        <div class="title">${filme.titulo}</div>
+        <div class="genre">${filme.genero}</div>
+        <div class="desc">${filme.descricao || ''}</div>
+        <div class="votes">
+          <button class="btn-like" data-id="${filme.id}">👍 Gostei <span class="counter">${filme.gostei}</span></button>
+          <button class="btn-dislike" data-id="${filme.id}">👎 Não Gostei <span class="counter">${filme.naoGostei}</span></button>
+        </div>
+      `;
+
+      // Eventos para os botões de voto
+      card.querySelector('.btn-like').addEventListener('click', () => votar(filme.id, 'gostei'));
+      card.querySelector('.btn-dislike').addEventListener('click', () => votar(filme.id, 'naoGostei'));
+
+      container.appendChild(card);
+    });
+
+    atualizarTotais();
+  }
+
+  async function votar(id, tipo) {
+    await fetch(`${API_URL}/filmes/${id}/voto`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({tipo})
+    });
+    carregarFilmes();
+  }
+
+  async function atualizarTotais() {
+    const resp = await fetch(`${API_URL}/totais`);
+    const totais = await resp.json();
+    document.getElementById('total-gostei').textContent = totais.total_gostei;
+    document.getElementById('total-naoGostei').textContent = totais.total_naoGostei;
+  }
+
+  document.getElementById('form-cadastro').addEventListener('submit', async e => {
+    e.preventDefault();
+    const titulo = document.getElementById('titulo').value.trim();
+    const genero = document.getElementById('genero').value.trim();
+    const imagem = document.getElementById('imagem').value.trim();
+    const descricao = document.getElementById('descricao').value.trim();
+
+    if (!titulo || !genero || !imagem) {
+      alert('Preencha todos os campos obrigatórios (*)');
+      return;
+    }
+
+    const resp = await fetch(`${API_URL}/filmes`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({titulo, genero, imagem, descricao})
+    });
+
+    if (resp.ok) {
+      alert('Filme/Série cadastrado com sucesso!');
+      document.getElementById('form-cadastro').reset();
+      carregarFilmes();
+    } else {
+      const erro = await resp.json();
+      alert('Erro ao cadastrar: ' + (erro.erro || 'Desconhecido'));
+    }
+  });
+
+  // Carrega a lista assim que a página abre
+  carregarFilmes();
+</script>
+</body>
+</html>
